@@ -1,0 +1,8 @@
+# This is a simple Linux project skeleton for CS555 and SUNY Binghamton
+#Requisite:
+    OpenCV 3.4.0 for Linux
+	Have used pkg-config to set the enviromental variables.
+# How to run the code:
+    Type in "make" to compile the code.
+	Type in "make run" to run the code.
+    Press SPACE to switch between results under different modes. Press ESC to exit the program.
