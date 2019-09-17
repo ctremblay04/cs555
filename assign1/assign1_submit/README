@@ -1,0 +1,10 @@
+Connor Tremblay
+Assignment 1
+CS555
+ctrembl1@binghamton.edu
+
+To compile: make
+
+To run: ./main
+
+Everything is outputted to bmp files in the same folder and to a file called output.txt
