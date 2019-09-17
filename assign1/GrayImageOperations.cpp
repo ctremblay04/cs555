@@ -49,66 +49,52 @@ Mat GrayImageOperations :: getThresholded(const Mat& orig) {
   return ret;
 }
 
-// I hate c++. This would be so much easier in python.
+
 Mat GrayImageOperations :: fillThreeLargestRegions(const Mat& orig) {
-  struct P {
-    vector<int> filled;
-    P(vector<int>& f) { filled = f; }
-    bool operator<(P other) const { return filled.size() > other.filled.size(); }
-  };
+  
   Mat thresholded = getThresholded(orig);
   Mat ret = thresholded.clone();
-  vector<vector<int>> regions;
-  size_t size = thresholded.rows * thresholded.step;
-  bool checked[thresholded.rows*thresholded.cols] = {false};
+  vector<vector<Pixel>> regions;
+  int rows = thresholded.rows;
+  int cols = thresholded.cols;
+  bool checked[rows][cols] = {false};
   
-  // BFS to discover regions, not ideal code however this is the only way that I could think
+  // DFS to discover regions, not ideal code however this is the only way that I could think
   // to implement without defining an interface for getting pixel values for Mat. 
-  for (int i = 0; i < size; i+=3) {
-    if (checked[i/3] or thresholded.data[i] == 0) { continue; }
-    stack<int> queue;
-    queue.push(i);
-    checked[i/3] = true;
-    vector<int> filled;
-    filled.push_back(i);
-    while (not queue.empty()) {
-      int curr = queue.top();
-      queue.pop();
-      int left = curr-3;
-      int right = curr+3;
-      int up = curr-thresholded.step;
-      int down = curr+thresholded.step;
-      if (left/thresholded.step == curr/thresholded.step and thresholded.data[left] != 0 and not checked[left/3]) {
-        checked[left/3] = true;
-        queue.push(left);
-        filled.push_back(left);
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      Pixel pixel = Pixel(i,j,rows,cols);
+      if (checked[pixel.x][pixel.y] or thresholded.data[pixel.getMatVal()] == 0) { continue; }
+      checked[pixel.x][pixel.y] = true;
+      stack<Pixel> queue;
+      vector<Pixel> filled;
+      queue.push(pixel);
+      filled.push_back(pixel);
+      while (not queue.empty()) { // DFS on successful pixel
+        Pixel curr = queue.top();
+        queue.pop();
+        int arr[4][2] = {{0,1},{1,0},{0,-1},{-1,0}};
+        for (auto p : arr) {
+          Pixel adj = Pixel(curr.x+p[0], curr.y+p[1], rows, cols);
+          if (not adj.validate() or checked[adj.x][adj.y] or thresholded.data[adj.getMatVal()] == 0) { continue; }
+          checked[adj.x][adj.y] = true;
+          filled.push_back(adj);
+          queue.push(adj);
+        }
       }
-      if (right/thresholded.step == curr/thresholded.step and thresholded.data[right] != 0 and not checked[right/3]) {
-        checked[right/3] = true;
-        queue.push(right);
-        filled.push_back(right);
-      }
-      if (up > 0 and thresholded.data[up] != 0 and not checked[up/3]) {
-        checked[up/3] = true;
-        queue.push(up);
-        filled.push_back(up);
-      }
-      if (down < size and thresholded.data[down] != 0 and not checked[down/3]) {
-        checked[down/3] = true;
-        queue.push(down);
-        filled.push_back(down);
-      }
+      regions.push_back(filled);
     }
-    regions.push_back(filled);
   }
-  sort(regions.begin(), regions.end(), [](vector<int>& lhs, vector<int>& rhs)->bool {return lhs.size() > rhs.size();});
+  // Sort regions based on size
+  sort(regions.begin(), regions.end(), [](vector<Pixel>& lhs, vector<Pixel>& rhs)->bool {return lhs.size() > rhs.size();});
   int c = 0; // Count of the largest regions
   for (auto i = regions.begin(); i != regions.end(); ++i) {
     for (auto j = (*i).begin(); j != (*i).end(); j++) {
-      if (c == 0) { ret.data[(*j)] = 34; ret.data[(*j)+1] = 58; ret.data[(*j)+2] = 216; }
-      else if (c == 1) { ret.data[(*j)] = 34; ret.data[(*j)+1] = 216; ret.data[(*j)+2] = 88; }
-      else if (c == 2) { ret.data[(*j)] = 216; ret.data[(*j)+1] = 34; ret.data[(*j)+2] = 34; }
-      else { ret.data[(*j)] = 0; ret.data[(*j)+1] = 0; ret.data[(*j)+2] = 0;}  
+      int val = (*j).getMatVal();
+      if (c == 0) { ret.data[val] = 34; ret.data[val+1] = 58; ret.data[val+2] = 216; }
+      else if (c == 1) { ret.data[val] = 34; ret.data[val+1] = 216; ret.data[val+2] = 88; }
+      else if (c == 2) { ret.data[val] = 216; ret.data[val+1] = 34; ret.data[val+2] = 34; }
+      else { ret.data[val] = 0; ret.data[val+1] = 0; ret.data[val+2] = 0;}  
     }
     if (c < 3) { c++; }
   }

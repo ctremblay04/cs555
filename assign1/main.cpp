@@ -53,12 +53,14 @@ Problem2() {
 int 
 main(void)
 {
-  ofstream myfile;
+  /*ofstream myfile;
   myfile.open("output.txt");
   string writeToFile = "";
   writeToFile += Problem1();
   writeToFile += Problem2();
   myfile << writeToFile;
-  myfile.close();
+  myfile.close();*/
+  Mat hitchhikeLabeledReigons = GrayImageOperations::fillThreeLargestRegions(imread("TestingImages3/guide_8bits.bmp"));
+  imwrite("test.bmp",hitchhikeLabeledReigons);
   return 0;
 }

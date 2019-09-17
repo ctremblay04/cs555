@@ -21,6 +21,12 @@ class GrayImageOperations
     static int* getHistogram(const Mat&);
     static string getHistogramStr(const Mat& orig);
   private:
+    struct Pixel { 
+      int x,y,row,col;
+      Pixel(int a, int b, int r, int c) : x(a), y(b), row(r), col(c) {};
+      int getMatVal() { return 3*(x*col+y); }
+      bool validate() { return x > -1 and y > -1 and x < row and y < col; };
+    };
     GrayImageOperations() {};
 };
 
